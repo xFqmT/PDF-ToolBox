@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Toolbox</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>📑 PDF Toolbox</h1>
+        <p class="subtitle">All-in-one simple PDF tools</p>
+
+        <div class="tools-grid">
+
+            <!-- Advanced Merge -->
+            <form class="tool-card merge-tool" action="/merge" method="POST" enctype="multipart/form-data">
+                <h2>Advanced Merge</h2>
+                <small class="file-size-hint">Max file size: 100MB</small>
+                <div class="form-content">
+                    <div id="file-inputs">
+                        <div class="merge-row">
+                            <label>PDF #1</label>
+                            <input type="file" name="file_0" accept=".pdf" onchange="updateName(this,0)">
+                            <input type="text" name="pages_0" placeholder="Pages: 1-3,5 (optional)">
+                            <div class="file-feedback" id="name-0">No file</div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="addFile()">➕ Add Another PDF</button>
+                    <button type="submit">Merge PDFs</button>
+                </div>
+            </form>
+
+            <!-- Split -->
+            <form class="tool-card" action="/split" method="POST" enctype="multipart/form-data">
+                <h2>Split Options</h2>
+                <small class="file-size-hint">Max file size: 100MB</small>
+                <div class="form-content">
+                    <input type="file" name="file" accept=".pdf" required>
+                    <input type="text" name="pages" placeholder="e.g. 1-3,5,7" required>
+                    <button type="submit">Split</button>
+                </div>
+            </form>
+
+            <!-- Compress -->
+            <form class="tool-card" action="/compress" method="POST" enctype="multipart/form-data">
+                <h2>Compress PDF</h2>
+                <small class="file-size-hint">Max file size: 100MB</small>
+                <div class="form-content">
+                    <input type="file" name="file" accept=".pdf" required>
+                    <button type="submit">Compress</button>
+                </div>
+            </form>
+
+            <!-- Convert to Word -->
+            <form class="tool-card" action="/pdf_to_word" method="POST" enctype="multipart/form-data">
+                <h2>PDF ➝ Word</h2>
+                <small class="file-size-hint">Max file size: 100MB</small>
+                <div class="form-content">
+                    <input type="file" name="file" accept=".pdf" required>
+                    <button type="submit">Convert</button>
+                </div>
+            </form>
+
+            <!-- Convert to Images -->
+            <form class="tool-card" action="/pdf_to_images" method="POST" enctype="multipart/form-data">
+                <h2>PDF ➝ Images</h2>
+                <small class="file-size-hint">Max file size: 100MB</small>
+                <div class="form-content">
+                    <input type="file" name="file" accept=".pdf" required>
+                    <input type="text" name="pages" placeholder="e.g. 1-3,5" required>
+                    <button type="submit">Convert</button>
+                </div>
+            </form>
+
+            <!-- Images to PDF -->
+            <form class="tool-card" action="/images_to_pdf" method="POST" enctype="multipart/form-data">
+                <h2>Images ➝ PDF</h2>
+                <small class="file-size-hint">Max file size: 100MB</small>
+                <div class="form-content">
+                    <input type="file" name="file" multiple accept="image/*" required>
+                    <button type="submit">Convert</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <script>
+        let fileIndex = 1;
+
+        function updateName(input, idx) {
+            const el = document.getElementById(`name-${idx}`);
+            el.textContent = input.files[0]?.name || 'No file';
+        }
+
+        function addFile() {
+            const container = document.getElementById('file-inputs');
+            const div = document.createElement('div');
+            div.className = 'merge-row';
+            div.innerHTML = `
+                <label>PDF #${fileIndex + 1}</label>
+                <input type="file" name="file_${fileIndex}" accept=".pdf" onchange="updateName(this,${fileIndex})">
+                <input type="text" name="pages_${fileIndex}" placeholder="Pages: 1-3,5 (optional)">
+                <div class="file-feedback" id="name-${fileIndex}">No file</div>
+            `;
+            container.appendChild(div);
+            fileIndex++;
+        }
+    </script>
+</body>
+</html>
