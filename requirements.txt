@@ -1,5 +1,2 @@
-Flask==2.3.3
-PyPDF2==3.0.1
-img2pdf==0.4.4
-PyMuPDF==1.23.5
-python-docx==0.8.11
+flask
+gunicorn
