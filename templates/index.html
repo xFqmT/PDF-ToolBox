@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Toolbox</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>📑 PDF Toolbox</h1>
+        <p class="subtitle">All-in-one simple PDF tools</p>
+
+        <div class="tools-grid">
+
+            <!-- Advanced Merge -->
+            <form class="tool-card merge-tool" action="/merge" method="POST" enctype="multipart/form-data">
+                <h2>Advanced Merge</h2>
+                <small class="file-size-hint">Max file size: 100MB</small>
+                <div class="form-content">
+                    <div id="file-inputs">
+                        <div class="merge-row">
+                            <label>PDF #1</label>
+                            <input type="file" name="file_0" accept=".pdf" onchange="updateName(this,0)">
+                            <input type="text" name="pages_0" placeholder="Pages: 1-3,5 (optional)">
+                            <div class="file-feedback" id="name-0">No file</div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="addFile()">➕ Add Another PDF</button>
+                    <button type="submit">Merge PDFs</button>
+                </div>
+            </form>
+
+            <!-- Split -->
+            <form class="tool-card" action="/split" method="POST" enctype="multipart/form-data">
+                <h2>Split Options</h2>
+                <small class="file-size-hint">Max file size: 100MB</small>
+                <div class="form-content">
+                    <input type="file" name="file" accept=".pdf" required>
+                    <input type="text" name="pages" placeholder="e.g. 1-3,5,7" required>
+                    <button type="submit">Split</button>
+                </div>
+            </form>
+
+            <!-- Compress -->
+            <form class="tool-card" action="/compress" method="POST" enctype="multipart/form-data">
+                <h2>Compress PDF</h2>
+                <small class="file-size-hint">Max file size: 100MB</small>
+                <div class="form-content">
+                    <input type="file" name="file" accept=".pdf" required>
+                    <button type="submit">Compress</button>
+                </div>
+            </form>
+
+            <!-- Convert to Word -->
+            <form class="tool-card" action="/pdf_to_word" method="POST" enctype="multipart/form-data">
+                <h2>PDF ➝ Word</h2>
+                <small class="file-size-hint">Max file size: 100MB</small>
+                <div class="form-content">
+                    <input type="file" name="file" accept=".pdf" required>
+                    <button type="submit">Convert</button>
+                </div>
+            </form>
+
+            <!-- Convert to Images -->
+            <form class="tool-card" action="/pdf_to_images" method="POST" enctype="multipart/form-data">
+                <h2>PDF ➝ Images</h2>
+                <small class="file-size-hint">Max file size: 100MB</small>
+                <div class="form-content">
+                    <input type="file" name="file" accept=".pdf" required>
+                    <input type="text" name="pages" placeholder="e.g. 1-3,5" required>
+                    <button type="submit">Convert</button>
+                </div>
+            </form>
+
+            <!-- Images to PDF -->
+            <form class="tool-card" action="/images_to_pdf" method="POST" enctype="multipart/form-data">
+                <h2>Images ➝ PDF</h2>
+                <small class="file-size-hint">Max file size: 100MB</small>
+                <div class="form-content">
+                    <input type="file" name="file" multiple accept="image/*" required>
+                    <button type="submit">Convert</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="popup-overlay loading-modal">
+        <div class="popup-modal">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Processing your request...</div>
+            <div class="loading-subtext">Please wait while we process your PDF</div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="popup-overlay success-modal">
+        <div class="popup-modal">
+            <button class="modal-close" onclick="closeModal('successModal')">&times;</button>
+            <div class="success-icon">✓</div>
+            <div class="success-title">Download Started!</div>
+            <div class="success-message" id="successMessage">Your file is being downloaded successfully.</div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-primary" onclick="closeModal('successModal')">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="errorModal" class="popup-overlay error-modal">
+        <div class="popup-modal">
+            <button class="modal-close" onclick="closeModal('errorModal')">&times;</button>
+            <div class="error-icon">⚠</div>
+            <div class="error-title">Error</div>
+            <div class="error-message" id="errorMessage">An error occurred while processing your request.</div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-primary" onclick="closeModal('errorModal')">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let fileIndex = 1;
+
+        function updateName(input, idx) {
+            const el = document.getElementById(`name-${idx}`);
+            el.textContent = input.files[0]?.name || 'No file';
+        }
+
+        function addFile() {
+            const container = document.getElementById('file-inputs');
+            const div = document.createElement('div');
+            div.className = 'merge-row';
+            div.innerHTML = `
+                <label>PDF #${fileIndex + 1}</label>
+                <input type="file" name="file_${fileIndex}" accept=".pdf" onchange="updateName(this,${fileIndex})">
+                <input type="text" name="pages_${fileIndex}" placeholder="Pages: 1-3,5 (optional)">
+                <div class="file-feedback" id="name-${fileIndex}">No file</div>
+            `;
+            container.appendChild(div);
+            fileIndex++;
+        }
+
+        // Modern Modal System
+        function showLoadingModal(message = 'Processing your request...', subtext = 'Please wait while we process your PDF') {
+            const modal = document.getElementById('loadingModal');
+            modal.querySelector('.loading-text').textContent = message;
+            modal.querySelector('.loading-subtext').textContent = subtext;
+            modal.classList.add('show');
+        }
+
+        function showSuccessModal(message = 'Your file is being downloaded successfully.') {
+            closeModal('loadingModal');
+            const modal = document.getElementById('successModal');
+            modal.querySelector('#successMessage').textContent = message;
+            modal.classList.add('show');
+        }
+
+        function showErrorModal(message = 'An error occurred while processing your request.') {
+            closeModal('loadingModal');
+            const modal = document.getElementById('errorModal');
+            modal.querySelector('#errorMessage').textContent = message;
+            modal.classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            if (modalId) {
+                document.getElementById(modalId).classList.remove('show');
+            } else {
+                // Close all modals
+                document.querySelectorAll('.popup-overlay').forEach(modal => {
+                    modal.classList.remove('show');
+                });
+            }
+        }
+
+        // Validate page ranges
+        function validatePageRange(pageInput, maxPages = null) {
+            if (!pageInput.trim()) return true; // Empty is allowed for some forms
+            
+            const parts = pageInput.split(',');
+            for (let part of parts) {
+                part = part.trim();
+                if (part.includes('-')) {
+                    const [start, end] = part.split('-').map(p => parseInt(p.trim()));
+                    if (isNaN(start) || isNaN(end) || start < 1 || end < start) {
+                        return false;
+                    }
+                    if (maxPages && (start > maxPages || end > maxPages)) {
+                        return false;
+                    }
+                } else {
+                    const page = parseInt(part);
+                    if (isNaN(page) || page < 1) {
+                        return false;
+                    }
+                    if (maxPages && page > maxPages) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        // Enhanced form submission with modern popups
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('form');
+            
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault(); // Prevent default form submission
+                    
+                    const pageInput = form.querySelector('input[name="pages"]');
+                    
+                    // Validate page input if present
+                    if (pageInput && pageInput.value.trim()) {
+                        if (!validatePageRange(pageInput.value)) {
+                            showErrorModal('Invalid page format. Please use format like: 1-3,5,7');
+                            return;
+                        }
+                    }
+                    
+                    // Show loading modal
+                    const action = form.action.split('/').pop();
+                    let loadingMessage = 'Processing your request...';
+                    let subtext = 'Please wait while we process your PDF';
+                    
+                    switch(action) {
+                        case 'merge':
+                            loadingMessage = 'Merging PDFs...';
+                            subtext = 'Combining your PDF files';
+                            break;
+                        case 'split':
+                            loadingMessage = 'Splitting PDF...';
+                            subtext = 'Extracting selected pages';
+                            break;
+                        case 'compress':
+                            loadingMessage = 'Compressing PDF...';
+                            subtext = 'Reducing file size';
+                            break;
+                        case 'pdf_to_word':
+                            loadingMessage = 'Converting to Word...';
+                            subtext = 'Creating DOCX document';
+                            break;
+                        case 'pdf_to_images':
+                            loadingMessage = 'Converting to Images...';
+                            subtext = 'Extracting pages as images';
+                            break;
+                        case 'images_to_pdf':
+                            loadingMessage = 'Creating PDF...';
+                            subtext = 'Converting images to PDF';
+                            break;
+                    }
+                    
+                    showLoadingModal(loadingMessage, subtext);
+                    
+                    // Submit form using fetch API
+                    const formData = new FormData(form);
+                    
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // Check if response is a file download
+                            const contentType = response.headers.get('content-type');
+                            if (contentType && (contentType.includes('application/pdf') || 
+                                              contentType.includes('application/zip') || 
+                                              contentType.includes('application/vnd.openxmlformats'))) {
+                                // It's a file download
+                                return response.blob().then(blob => {
+                                    // Create download link
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    
+                                    // Get filename from Content-Disposition header or use default
+                                    const disposition = response.headers.get('Content-Disposition');
+                                    let filename = 'download.pdf';
+                                    if (disposition && disposition.includes('filename=')) {
+                                        filename = disposition.split('filename=')[1].replace(/"/g, '');
+                                    }
+                                    
+                                    a.download = filename;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    window.URL.revokeObjectURL(url);
+                                    
+                                    showSuccessModal('File downloaded successfully!');
+                                });
+                            } else {
+                                // Check if it's an error response
+                                return response.text().then(text => {
+                                    if (text.includes('Error:')) {
+                                        showErrorModal(text);
+                                    } else {
+                                        showErrorModal('Unexpected response from server.');
+                                    }
+                                });
+                            }
+                        } else {
+                            // Handle HTTP errors
+                            return response.text().then(text => {
+                                showErrorModal(text || `Server error: ${response.status}`);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showErrorModal('Network error. Please check your connection and try again.');
+                    });
+                });
+            });
+            
+            // Close modal when clicking outside
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('popup-overlay')) {
+                    closeModal();
+                }
+            });
+            
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
