@@ -1,2 +1,4 @@
 flask
 gunicorn
+PyPDF2
+PyMuPDF
