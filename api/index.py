@@ -4,8 +4,6 @@ from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 import os
 import tempfile
 import img2pdf
-from pdf2docx import Converter
-from pdf2image import convert_from_path
 import zipfile
 from io import BytesIO
 import uuid
