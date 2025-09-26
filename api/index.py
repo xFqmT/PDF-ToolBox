@@ -321,9 +321,7 @@ def images_to_pdf():
     except Exception as e:
         return f"Error: {str(e)}", 500
 
-# This is required for Vercel
-def handler(request):
-    return app(request.environ, lambda *args: None)
+# Export app for Vercel
 
 if __name__ == '__main__':
     print("Starting PDF Toolbox...")
