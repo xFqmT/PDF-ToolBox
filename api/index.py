@@ -4,8 +4,6 @@ from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 import os
 import tempfile
 import img2pdf
-from pdf2docx import Converter
-from pdf2image import convert_from_path
 import zipfile
 from io import BytesIO
 import uuid
@@ -166,129 +164,15 @@ def split_pdf():
 
 @app.route('/compress', methods=['POST'])
 def compress_pdf():
-    if 'file' not in request.files or not request.files['file'].filename:
-        return "No file uploaded", 400
-    try:
-        import fitz
-        file = request.files['file']
-        filename = secure_filename(file.filename)
-        input_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(input_path)
-        doc = fitz.open(input_path)
-        output_path = os.path.join(app.config['UPLOAD_FOLDER'], f"compressed_{uuid.uuid4().hex}.pdf")
-        doc.save(output_path, garbage=4, deflate=True, clean=True, ascii=False, pretty=False, linear=False, encryption=0)
-        doc.close()
-        response = send_file(output_path, as_attachment=True, download_name="compressed.pdf", mimetype='application/pdf')
-        @response.call_on_close
-        def cleanup_files():
-            cleanup(input_path)
-            cleanup(output_path)
-        return response
-    except Exception as e:
-        return f"Compression error: {str(e)}", 500
+    return "Compression feature temporarily disabled for deployment optimization", 501
 
 @app.route('/pdf_to_word', methods=['POST'])
 def pdf_to_word():
-    if 'file' not in request.files or not request.files['file'].filename:
-        return "No file uploaded", 400
-    try:
-        import fitz
-        from docx import Document
-        from docx.shared import Inches, Cm
-        from docx.enum.text import WD_ALIGN_PARAGRAPH
-        import io
-        file = request.files['file']
-        filename = secure_filename(file.filename)
-        input_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(input_path)
-        output_path = os.path.join(app.config['UPLOAD_FOLDER'], f"word_{uuid.uuid4().hex}.docx")
-        doc = fitz.open(input_path)
-        document = Document()
-        section = document.sections[0]
-        section.page_width = Cm(21)
-        section.page_height = Cm(29.7)
-        section.top_margin = Cm(1)
-        section.bottom_margin = Cm(1)
-        section.left_margin = Cm(1)
-        section.right_margin = Cm(1)
-        for page_num in range(len(doc)):
-            page = doc.load_page(page_num)
-            mat = fitz.Matrix(2.0, 2.0)
-            pix = page.get_pixmap(matrix=mat, alpha=False)
-            img_data = pix.tobytes("png")
-            img_stream = io.BytesIO(img_data)
-            paragraph = document.add_paragraph()
-            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            run = paragraph.add_run()
-            run.add_picture(img_stream, width=Inches(6.5))
-            if page_num < len(doc) - 1:
-                document.add_page_break()
-        doc.close()
-        document.save(output_path)
-        response = send_file(output_path, as_attachment=True, download_name="document.docx", mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-        @response.call_on_close
-        def cleanup_files():
-            cleanup(input_path)
-            cleanup(output_path)
-        return response
-    except Exception as e:
-        return f"Conversion error: {str(e)}", 500
+    return "PDF to Word feature temporarily disabled for deployment optimization", 501
 
 @app.route('/pdf_to_images', methods=['POST'])
 def pdf_to_images():
-    if 'file' not in request.files or not request.files['file'].filename:
-        return "Error: No file uploaded", 400
-    pages_input = request.form.get('pages', '').strip()
-    if not pages_input:
-        return "Error: No pages specified", 400
-    try:
-        import fitz
-        file = request.files['file']
-        filename = secure_filename(file.filename)
-        input_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(input_path)
-        doc = fitz.open(input_path)
-        total_pages = len(doc)
-        
-        # Validate page range
-        is_valid, error_msg = validate_page_range(pages_input, total_pages)
-        if not is_valid:
-            doc.close()
-            cleanup(input_path)
-            return error_msg, 400
-        
-        page_numbers = []
-        for part in pages_input.split(','):
-            part = part.strip()
-            if '-' in part:
-                start, end = map(int, part.split('-'))
-                page_numbers.extend(range(start-1, end))
-            else:
-                page_numbers.append(int(part)-1)
-        page_numbers = [p for p in page_numbers if 0 <= p < len(doc)]
-        if not page_numbers:
-            doc.close()
-            cleanup(input_path)
-            return "Error: No valid pages selected", 400
-        zip_buffer = BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w') as zipf:
-            for p in page_numbers:
-                page = doc.load_page(p)
-                pix = page.get_pixmap()
-                img_data = pix.tobytes("png")
-                zipf.writestr(f"page_{p+1}.png", img_data)
-        doc.close()
-        output_path = os.path.join(app.config['UPLOAD_FOLDER'], f"pdf_to_images_{uuid.uuid4().hex}.zip")
-        with open(output_path, 'wb') as f:
-            f.write(zip_buffer.getvalue())
-        response = send_file(output_path, as_attachment=True, download_name="pages.zip", mimetype='application/zip')
-        @response.call_on_close
-        def cleanup_files():
-            cleanup(input_path)
-            cleanup(output_path)
-        return response
-    except Exception as e:
-        return f"Error: {str(e)}", 500
+    return "PDF to Images feature temporarily disabled for deployment optimization", 501
 
 @app.route('/images_to_pdf', methods=['POST'])
 def images_to_pdf():
