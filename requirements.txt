@@ -2,4 +2,8 @@ flask
 werkzeug
 PyPDF2
 img2pdf
+pdf2docx
+pdf2image
+PyMuPDF
+python-docx
 Pillow
