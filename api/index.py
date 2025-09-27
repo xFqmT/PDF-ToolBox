@@ -322,6 +322,10 @@ def images_to_pdf():
     except Exception as e:
         return f"Error: {str(e)}", 500
 
-# For Vercel
-def handler(request):
-    return app(request.environ, request.start_response)
+# For Vercel serverless deployment
+if __name__ == '__main__':
+    app.run(debug=True)
+else:
+    # This is the handler for Vercel
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app)
