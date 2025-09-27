@@ -1,4 +1,3 @@
 flask
-gunicorn
+werkzeug
 PyPDF2
-PyMuPDF
