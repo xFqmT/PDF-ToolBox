@@ -10,9 +10,9 @@ import zipfile
 from io import BytesIO
 import uuid
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../templates', static_folder='../static')
 
-app.config['UPLOAD_FOLDER'] = tempfile.mkdtemp()
+app.config['UPLOAD_FOLDER'] = '/tmp'
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
 
 def cleanup(path):
@@ -322,6 +322,6 @@ def images_to_pdf():
     except Exception as e:
         return f"Error: {str(e)}", 500
 
-if __name__ == '__main__':
-    print("Starting PDF Toolbox...")
-    app.run(debug=True)
+# For Vercel
+def handler(request):
+    return app(request.environ, request.start_response)
